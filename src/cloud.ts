@@ -259,6 +259,7 @@ export class IntesisCloudClient {
         }
       }
       this.log.warn(`getDeviceState(${deviceId}): cloud returned the shell page without device data; skipping this poll.`);
+      this.reportHint();
       return null;
     }
     return this.parseVista(res.body);
@@ -272,6 +273,23 @@ export class IntesisCloudClient {
   private sleep(ms: number): Promise<void> {
     return new Promise(resolve => setTimeout(resolve, ms));
   }
+
+  /**
+   * Emit a short "how to report this" hint on recurring failures, at most once
+   * per cooldown window so a repeating condition doesn't spam the log.
+   */
+  private reportHint(): void {
+    const now = Date.now();
+    if (this.lastHintAt !== null && now - this.lastHintAt < 60_000) {
+      return;
+    }
+    this.lastHintAt = now;
+    this.log.warn('If this keeps happening, enable debug logging and open a bug report:');
+    this.log.warn('  set log level to "debug" for homebridge-intesis-accloud (Homebridge UI -> Settings -> Logs)');
+    this.log.warn('  then file an issue at https://github.com/csi-lk/homebridge-intesis-accloud/issues with the logs.');
+  }
+
+  private lastHintAt: number | null = null;
 
   private parseVista(body: string): DeviceServices | null {
     const safeMatch = (pattern: RegExp, field: string): RegExpMatchArray | null => {

@@ -83,6 +83,29 @@ Add the platform to your Homebridge `config.json`:
 > (via your IntesisHome/AC Cloud account), not to a local IntesisBox or
 > LAN-capable WiFi module.
 
+## Debug logging & reporting bugs
+
+If something isn't working, the fastest way to diagnose it is with debug
+logging enabled. In the Homebridge UI go to **Settings → Logs → Debug
+logging → Debug Logs** and select **`homebridge-intesis-accloud`** (or set
+the `LOG_LEVEL=debug` env var / `HOMEBRIDGE_LOG_LEVEL=debug`), then reproduce
+the issue.
+
+When filing a bug report, please open an issue at
+<https://github.com/csi-lk/homebridge-intesis-accloud/issues> and include:
+
+- The plugin version and Homebridge version (from **Settings → About**).
+- The relevant **log excerpt** with `[IntesisWeb]` lines around the failure
+  (the plugin logs parse failures with the response body preview, and command
+  set confirmations/retries).
+- Any patterns you noticed: does it fail on startup, after a period of
+  inactivity, or when toggling a specific device?
+
+The plugin is designed to recover on its own from transient cloud issues
+(session expiry, the "shell page without device data" case) by re-logging in
+and retrying, so occasional `[IntesisWeb]` warnings are expected. Persistent
+or repeated errors are worth reporting.
+
 ## Development
 
 Requirements: [Bun](https://bun.sh) ≥ 1.3.

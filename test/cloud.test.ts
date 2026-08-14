@@ -81,6 +81,19 @@ function makeClient(fetchFn: FetchFn) {
   return new IntesisCloudClient(makeFakeLogger(), 'user', 'pass', undefined, fetchFn);
 }
 
+/** Build a client with a recording logger so tests can assert on warnings. */
+function makeClientWithLog(fetchFn: FetchFn) {
+  const warns: string[] = [];
+  const log = {
+    debug: () => {},
+    info: () => {},
+    warn: (...a: unknown[]) => warns.push(a.join(' ')),
+    error: () => {},
+  };
+  const client = new IntesisCloudClient(log, 'user', 'pass', undefined, fetchFn);
+  return { client, warns };
+}
+
 describe('IntesisCloudClient', () => {
   test('getDevices parses device headers', async () => {
     const h = makeFetchHarness();
@@ -363,6 +376,36 @@ describe('IntesisCloudClient', () => {
 
     const client = makeClient(h.fetchFn);
     expect(await client.getDeviceState('DEV1')).toBeNull();
+  });
+
+  test('report hint is logged once per cooldown window on shell-page failures', async () => {
+    const h = makeFetchHarness();
+    h.expectCall(new URL('login', 'https://accloud.intesis.com/').toString(), 'GET')
+      .respond({ body: LOGIN_PAGE });
+    h.expectCall(new URL('login', 'https://accloud.intesis.com/').toString(), 'POST')
+      .respond({ status: 302 });
+
+    // Two consecutive failing polls (each: shell page + 2 forced re-logins + retries).
+    for (let poll = 0; poll < 2; poll++) {
+      h.expectCall(new URL('panel/vista?id=DEV1', 'https://accloud.intesis.com/').toString(), 'GET')
+        .respond({ body: SHELL_PAGE });
+      for (let i = 0; i < 2; i++) {
+        h.expectCall(new URL('login', 'https://accloud.intesis.com/').toString(), 'GET')
+          .respond({ body: LOGIN_PAGE });
+        h.expectCall(new URL('login', 'https://accloud.intesis.com/').toString(), 'POST')
+          .respond({ status: 302 });
+        h.expectCall(new URL('panel/vista?id=DEV1', 'https://accloud.intesis.com/').toString(), 'GET')
+          .respond({ body: SHELL_PAGE });
+      }
+    }
+
+    const { client, warns } = makeClientWithLog(h.fetchFn);
+    await client.getDeviceState('DEV1');
+    await client.getDeviceState('DEV1');
+
+    const hintLines = warns.filter(w => w.includes('open a bug report'));
+    // Both failures happened within the 60s cooldown, so only one hint.
+    expect(hintLines).toHaveLength(1);
   });
 
   test('getDeviceState warns on non-200 status', async () => {
