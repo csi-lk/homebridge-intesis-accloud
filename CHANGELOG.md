@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.5] - 2026-08-14
+
+### Fixes
+
+- Restore changelog heading and make prepend idempotent
+
+
 ## [1.0.4] - 2026-08-14
 
 ### Fixes
