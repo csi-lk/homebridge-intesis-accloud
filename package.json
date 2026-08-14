@@ -1,0 +1,59 @@
+{
+  "name": "homebridge-intesis-accloud",
+  "version": "1.0.0",
+  "description": "Homebridge plugin for IntesisHome AC controllers. Reliable cloud control with command retry and reconciliation.",
+  "main": "dist/index.js",
+  "displayName": "Homebridge Intesis AC Cloud",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.20.4",
+    "homebridge": ">=1.8.0"
+  },
+  "type": "commonjs",
+  "scripts": {
+    "clean": "rm -rf dist",
+    "build": "bun run clean && bunx tsc -p tsconfig.json",
+    "test": "bun test --coverage && bun ./scripts/check-coverage.ts",
+    "test:coverage": "bun test --coverage",
+    "lint": "bunx tsc --noEmit -p tsconfig.json",
+    "prepublishOnly": "bun run build && bun run test"
+  },
+  "keywords": [
+    "homebridge-plugin",
+    "homebridge-intesis-accloud",
+    "homebridge",
+    "intesis",
+    "intesishome",
+    "accloud",
+    "ac",
+    "air-conditioner"
+  ],
+  "author": {
+    "name": "csilk"
+  },
+  "homepage": "https://github.com/csi-lk/homebridge-intesis-accloud",
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:csi-lk/homebridge-intesis-accloud.git"
+  },
+  "bugs": {
+    "url": "https://github.com/csi-lk/homebridge-intesis-accloud/issues"
+  },
+  "funding": [
+    {
+      "type": "github",
+      "url": "https://github.com/sponsors/csi-lk"
+    }
+  ],
+  "files": [
+    "dist/",
+    "config.schema.json"
+  ],
+  "devDependencies": {
+    "@homebridge/hap-nodejs": "^2.2.0",
+    "@types/bun": "^1.1.0",
+    "@types/node": "^20.11.0",
+    "homebridge": "^2.0.0",
+    "typescript": "^5.4.0"
+  }
+}

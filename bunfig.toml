@@ -1,0 +1,8 @@
+[install]
+# Use npmjs as the default registry
+registry = "https://registry.npmjs.org"
+
+[test]
+# Preload the coverage guard which runs `bun test --coverage` assertions.
+# NOTE: coverage threshold/exclude are enforced by scripts/check-coverage.ts
+# invoked from the CI workflow, since Bun's CLI has no native threshold flag.

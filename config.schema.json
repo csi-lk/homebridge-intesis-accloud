@@ -1,0 +1,69 @@
+{
+  "pluginAlias": "IntesisWeb",
+  "pluginType": "platform",
+  "singular": true,
+  "headerDisplay": "[homebridge-intesis-accloud](https://github.com/csi-lk/homebridge-intesis-accloud) is a Homebridge plugin to interact with IntesisHome AC controllers via the Intesis cloud.",
+  "schema": {
+    "type": "object",
+    "properties": {
+      "username": {
+        "title": "Intesis Username",
+        "type": "string",
+        "required": true,
+        "placeholder": "username",
+        "description": "Username for your Intesis account"
+      },
+      "password": {
+        "title": "Intesis Password",
+        "type": "string",
+        "required": true,
+        "placeholder": "password",
+        "description": "Password for your Intesis account"
+      },
+      "swingMode": {
+        "title": "Swing Mode",
+        "type": "string",
+        "oneOf": [
+          { "title": "Horizontal", "enum": ["H"] },
+          { "title": "Vertical", "enum": ["V"] }
+        ],
+        "required": false,
+        "description": "Should swing mode affect the horizontal or vertical vanes? Defaults to horizontal."
+      },
+      "apiBaseURL": {
+        "title": "Intesis URL",
+        "type": "string",
+        "format": "uri",
+        "required": false,
+        "description": "Base URL of Intesis website"
+      },
+      "configCacheSeconds": {
+        "title": "Polling Interval (seconds)",
+        "type": "integer",
+        "minimum": 5,
+        "required": false,
+        "description": "How often to poll the Intesis cloud for status updates and re-attempt any pending commands. Defaults to 30."
+      },
+      "defaultTemperature": {
+        "title": "Default Temperature",
+        "type": "integer",
+        "minimum": 0,
+        "required": false,
+        "description": "Temperature (in Celsius) to default the current temperature to when no reading is available. 0 means use the current set point. Defaults to 0."
+      }
+    }
+  },
+  "form": [
+    "username",
+    "password",
+    "swingMode",
+    {
+      "type": "fieldset",
+      "expandable": true,
+      "title": "Advanced Settings (Optional)",
+      "description": "These are optional settings that you can adjust if needed. The defaults should work for nearly everyone.",
+      "items": ["apiBaseURL", "configCacheSeconds", "defaultTemperature"]
+    }
+  ],
+  "display": null
+}

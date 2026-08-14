@@ -1,0 +1,6 @@
+test/
+scripts/
+coverage/
+bunfig.toml
+tsconfig.json
+.github/
