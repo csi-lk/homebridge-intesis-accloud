@@ -220,7 +220,16 @@ export class IntesisCloudClient {
    */
   public async getDeviceState(deviceId: string): Promise<DeviceServices | null> {
     const res = await this.fetchWithLogin(`panel/vista?id=${deviceId}`);
-    if (!res || this.isLoginPage(res)) {
+    if (!res) {
+      this.log.warn(`getDeviceState(${deviceId}): no response after login retries.`);
+      return null;
+    }
+    if (this.isLoginPage(res)) {
+      this.log.warn(`getDeviceState(${deviceId}): response was a login page.`);
+      return null;
+    }
+    if (res.status !== 200) {
+      this.log.warn(`getDeviceState(${deviceId}): unexpected HTTP status ${res.status}.`);
       return null;
     }
     return this.parseVista(res.body);
@@ -231,12 +240,15 @@ export class IntesisCloudClient {
       const match = body.match(pattern);
       if (!match) {
         this.log.error(`PARSE ERROR: failed to match pattern for '${field}'`);
+        this.log.error(`  pattern: ${pattern}`);
+        this.log.error(`  body length: ${body.length} chars`);
+        this.log.error(`  body preview: ${JSON.stringify(body.slice(0, 500))}`);
         return null;
       }
       return match;
     };
 
-    const userIdMatch = safeMatch(/\&userId=(\d+)/, 'userId');
+    const userIdMatch = safeMatch(/(?:&|&amp;)userId=(\d+)/, 'userId');
     if (!userIdMatch) {
       return null;
     }
