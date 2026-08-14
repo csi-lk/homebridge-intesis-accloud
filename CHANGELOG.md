@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.10] - 2026-08-14
+
+### Features
+
+- Add bug-report guidance and debug-logging hints
+
+
 ## [1.0.9] - 2026-08-14
 
 ### Fixes
