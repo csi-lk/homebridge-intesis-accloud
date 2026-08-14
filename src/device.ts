@@ -1,5 +1,5 @@
 import type { API, Characteristic, Logger, Service } from 'homebridge';
-import type { IntesisCloudClient, DeviceServices } from './cloud';
+import type { IntesisCloudClient, DeviceServices } from './cloud.js';
 
 /**
  * Mapping between HomeKit characteristic values and Intesis service values.

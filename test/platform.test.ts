@@ -1,7 +1,7 @@
 import { describe, expect, test, mock } from 'bun:test';
-import { IntesisWebPlatform } from '../src/platform';
-import { makeFakeApi, makeFakeLogger } from './helpers';
-import { PLUGIN_NAME, PLATFORM_NAME } from '../src/settings';
+import { IntesisWebPlatform } from '../src/platform.js';
+import { makeFakeApi, makeFakeLogger } from './helpers.js';
+import { PLUGIN_NAME, PLATFORM_NAME } from '../src/settings.js';
 
 function makeConfig(overrides: Record<string, unknown> = {}) {
   return {

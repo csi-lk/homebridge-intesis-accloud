@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test';
-import { IntesisCloudClient, type FetchFn } from '../src/cloud';
-import { makeFakeLogger } from './helpers';
+import { IntesisCloudClient, type FetchFn } from '../src/cloud.js';
+import { makeFakeLogger } from './helpers.js';
 
 interface FakeResponseOptions {
   status?: number;

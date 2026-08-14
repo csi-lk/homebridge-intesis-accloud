@@ -1,6 +1,6 @@
 import { describe, expect, test, mock } from 'bun:test';
-import { IntesisDevice, DesiredValue } from '../src/device';
-import { makeFakeApi, makeFakeLogger } from './helpers';
+import { IntesisDevice, DesiredValue } from '../src/device.js';
+import { makeFakeApi, makeFakeLogger } from './helpers.js';
 
 const powerMap = { toIntesis: (v: number) => (v === 1 ? 1 : 0), toHomeKit: (v: number) => (v === 1 ? 1 : 0) };
 

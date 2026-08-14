@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test';
-import { CookieJar } from '../src/cookiejar';
+import { CookieJar } from '../src/cookiejar.js';
 
 describe('CookieJar', () => {
   test('stores a single cookie from set-cookie', () => {

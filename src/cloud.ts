@@ -1,5 +1,5 @@
 import type { Logger } from 'homebridge';
-import { CookieJar } from './cookiejar';
+import { CookieJar } from './cookiejar.js';
 
 export interface DeviceService {
   service_id: number;

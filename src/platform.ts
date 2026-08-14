@@ -1,7 +1,7 @@
 import { API, DynamicPlatformPlugin, Logger, PlatformAccessory, PlatformConfig } from 'homebridge';
-import { IntesisCloudClient } from './cloud';
-import { IntesisDevice } from './device';
-import { PLATFORM_NAME, PLUGIN_NAME } from './settings';
+import { IntesisCloudClient } from './cloud.js';
+import { IntesisDevice } from './device.js';
+import { PLATFORM_NAME, PLUGIN_NAME } from './settings.js';
 
 export class IntesisWebPlatform implements DynamicPlatformPlugin {
   private readonly accessories = new Map<string, PlatformAccessory>();
