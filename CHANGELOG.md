@@ -1,3 +1,15 @@
+# Changelog
+
+## [1.0.4] - 2026-08-14
+
+### Fixes
+
+- Keep changelog heading at top when prepending section
+
+### Other
+
+- Release: automate changelog generation from conventional commits
+
 ## [1.0.3] - 2026-08-14
 
 ## [1.0.4] - 2026-08-14
@@ -11,8 +23,12 @@
 
 - Release: automate changelog generation from conventional commits
 
+## [1.0.2] - 2026-08-14
 
-# Changelog
+### Other
+
+- Release: auto-bump patch version on merge to main
+- Release: clarify auto-bump logic in workflow
 
 ## [1.0.1] - 2026-08-14
 
