@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.6] - 2026-08-14
+
+### Chores
+
+- Clean up duplicate changelog sections
+
+
 ## [1.0.5] - 2026-08-14
 
 ### Fixes
