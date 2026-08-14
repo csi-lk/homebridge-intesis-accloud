@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.8] - 2026-08-14
+
+### Fixes
+
+- Handle transient shell page without device data
+
+
 ## [1.0.7] - 2026-08-14
 
 ### Fixes
