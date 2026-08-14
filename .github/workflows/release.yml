@@ -52,6 +52,8 @@ jobs:
         id: current
         run: echo "VERSION=$(node -p "require('./package.json').version")" >> "$GITHUB_OUTPUT"
 
+      # If the current package.json version is already on npm, we auto-bump the
+      # patch. Manual minor/major bumps are detected and respected instead.
       - name: Check if current version is already published
         id: check
         run: |
