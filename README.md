@@ -103,11 +103,17 @@ Releases are fully automated via GitHub Actions:
 2. **Release workflow** (`.github/workflows/release.yml`) runs on every merge
    to `main`. It builds, runs tests, and then:
    - If the `version` in `package.json` is **already published**, it
-     auto-bumps the **patch** version (`1.0.1` → `1.0.2`), publishes to
-     **npm** (via trusted publishing), tags `v<version>`, and creates a
-     **GitHub release**.
+     auto-bumps the **patch** version (`1.0.1` → `1.0.2`).
+   - It auto-generates a `CHANGELOG.md` entry from your conventional commits
+     since the last release, publishes to **npm** (via trusted publishing),
+     commits the version bump + changelog back, tags `v<version>`, and creates
+     a **GitHub release**.
    - If you bumped the version yourself (e.g. `npm version minor`), it
      publishes that exact version without auto-bumping.
+
+To make the auto-generated changelog useful, use conventional commit
+prefixes: `feat:`, `fix:`, `docs:`, `chore:`, `refactor:`, `test:`,
+`perf:`, `build:`.
 
 So to cut a release you just merge to `main` — the patch bump, npm publish,
 git tag, and GitHub release all happen automatically. For a **minor** or

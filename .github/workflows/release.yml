@@ -73,15 +73,30 @@ jobs:
         id: pkg
         run: echo "VERSION=$(node -p "require('./package.json').version")" >> "$GITHUB_OUTPUT"
 
+      - name: Generate changelog section
+        id: changelog
+        run: |
+          {
+            echo "SECTION<<EOF"
+            bun ./scripts/generate-changelog.ts ${{ steps.pkg.outputs.VERSION }}
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Prepend changelog entry
+        run: |
+          mkdir -p /tmp/changelog
+          printf '%s\n\n%s' "${{ steps.changelog.outputs.SECTION }}" "$(cat CHANGELOG.md)" > /tmp/changelog/CHANGELOG.md
+          cp /tmp/changelog/CHANGELOG.md CHANGELOG.md
+
       - name: Publish to npm (trusted publishing)
         run: npm publish --provenance --access public
 
-      - name: Commit version bump back to main
+      - name: Commit version bump and changelog back to main
         if: steps.check.outputs.NEEDS_BUMP == 'true'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add package.json
+          git add package.json CHANGELOG.md
           git commit -m "chore: release v${{ steps.pkg.outputs.VERSION }} [skip ci]"
           git push origin main
 
