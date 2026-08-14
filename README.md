@@ -114,18 +114,33 @@ git push origin v1.0.0
 ### Trusted publishing (recommended)
 
 The release workflow uses **npm trusted publishing** (OIDC) — no `NPM_TOKEN`
-secret is stored in GitHub. To enable it:
+secret is stored in GitHub. Trusted publishing is configured **per package** on
+npmjs.com (not via the access-tokens page), so the package must be published
+once to claim the name before you can add a trusted publisher.
 
-1. Go to **npmjs.com → Access Tokens → Generate New Token → Publish**.
-2. Choose **"GitHub Actions"** as the token type.
-3. Select this repository (`csi-lk/homebridge-intesis-accloud`) and the
-   workflow file (`.github/workflows/release.yml`).
-4. npm issues a token bound to that repo + workflow. The workflow's
-   `id-token: write` permission lets `npm publish --provenance` authenticate
-   automatically.
+**First publish (one-time, from your machine):**
 
-> You can set this up **before the first publish** — trusted publishing is
-> configured at the npm account level, not per-package.
+```sh
+bun run build
+npm publish --access public
+```
+
+**Then enable trusted publishing:**
+
+1. Go to **npmjs.com → Packages → `homebridge-intesis-accloud` → Settings →
+   Trusted publishing**.
+2. Under "Select your publisher", choose **GitHub Actions**.
+3. Fill in:
+   - **Organization or user**: `csi-lk`
+   - **Repository**: `homebridge-intesis-accloud`
+   - **Workflow filename**: `release.yml`
+   - **Allowed actions**: `npm publish`
+4. Save. The workflow's `id-token: write` permission lets `npm publish`
+   authenticate automatically, and npm auto-generates provenance attestations.
+
+> You can set this up **before** cutting your first tagged release, but the
+> package name must already exist on npm (hence the one-time manual publish
+> above).
 
 ### Cutting a release
 
