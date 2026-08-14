@@ -6,7 +6,6 @@
 
 - Restore changelog heading and make prepend idempotent
 
-
 ## [1.0.4] - 2026-08-14
 
 ### Fixes
@@ -18,13 +17,6 @@
 - Release: automate changelog generation from conventional commits
 
 ## [1.0.3] - 2026-08-14
-
-## [1.0.4] - 2026-08-14
-
-### Fixes
-
-- Keep changelog heading at top when prepending section
-
 
 ### Other
 
