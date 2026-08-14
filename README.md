@@ -111,12 +111,31 @@ git tag v1.0.0
 git push origin v1.0.0
 ```
 
-### Required secrets
+### Trusted publishing (recommended)
 
-- `NPM_TOKEN` — npm access token with *publish* scope
-  (set in **repo → Settings → Secrets and variables → Actions**).
-- `GH_TOKEN` — a GitHub PAT with `repo` scope to create releases
-  (the default `GITHUB_TOKEN` also works for release creation).
+The release workflow uses **npm trusted publishing** (OIDC) — no `NPM_TOKEN`
+secret is stored in GitHub. To enable it:
+
+1. Go to **npmjs.com → Access Tokens → Generate New Token → Publish**.
+2. Choose **"GitHub Actions"** as the token type.
+3. Select this repository (`csi-lk/homebridge-intesis-accloud`) and the
+   workflow file (`.github/workflows/release.yml`).
+4. npm issues a token bound to that repo + workflow. The workflow's
+   `id-token: write` permission lets `npm publish --provenance` authenticate
+   automatically.
+
+> You can set this up **before the first publish** — trusted publishing is
+> configured at the npm account level, not per-package.
+
+### Cutting a release
+
+```sh
+git tag v1.0.0
+git push origin v1.0.0
+```
+
+The release workflow runs tests, enforces 100% coverage, builds, publishes to
+npm (with provenance), and creates a GitHub release with auto-generated notes.
 
 ## Homebridge catalog
 
