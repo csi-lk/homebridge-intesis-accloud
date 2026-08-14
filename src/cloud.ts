@@ -142,6 +142,18 @@ export class IntesisCloudClient {
     }
   }
 
+  /**
+   * Drop the current session entirely (clear cookies) and re-authenticate
+   * from scratch. Used when the cloud keeps serving the shell page without
+   * device data, which indicates the session has gone stale but hasn't yet
+   * redirected to the login form.
+   */
+  public async forceLogin(): Promise<boolean> {
+    this.loggedIn = false;
+    this.cookieJar.clear();
+    return this.ensureLogin();
+  }
+
   private async doLogin(): Promise<boolean> {
     this.log.debug('Logging in...');
     try {
@@ -233,11 +245,14 @@ export class IntesisCloudClient {
       return null;
     }
     // The cloud occasionally serves the authenticated shell page without the
-    // device panel data (transient render state). Retry a couple of times
-    // before giving up so a single slow render doesn't drop a poll.
+    // device panel data (transient render state, or a stale session that
+    // hasn't redirected to the login form yet). Retry a couple of times with
+    // a forced re-login before giving up so a stale session recovers on its
+    // own.
     if (this.isShellPage(res.body)) {
       for (let attempt = 0; attempt < 2; attempt++) {
         await this.sleep(1000);
+        await this.forceLogin();
         const retry = await this.fetchWithLogin(`panel/vista?id=${deviceId}`);
         if (retry && !this.isLoginPage(retry) && retry.status === 200 && !this.isShellPage(retry.body)) {
           return this.parseVista(retry.body);

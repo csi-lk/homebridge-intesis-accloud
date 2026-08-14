@@ -306,8 +306,9 @@ describe('IntesisCloudClient', () => {
     expect(await client.getDeviceState('DEV1')).toBeNull();
   });
 
-  test('getDeviceState retries when cloud returns the shell page, then succeeds', async () => {
+  test('getDeviceState retries with forced re-login on shell page, then succeeds', async () => {
     const h = makeFetchHarness();
+    // First login
     h.expectCall(new URL('login', 'https://accloud.intesis.com/').toString(), 'GET')
       .respond({ body: LOGIN_PAGE });
     h.expectCall(new URL('login', 'https://accloud.intesis.com/').toString(), 'POST')
@@ -316,6 +317,13 @@ describe('IntesisCloudClient', () => {
     // First vista returns the shell page (no device data).
     h.expectCall(new URL('panel/vista?id=DEV1', 'https://accloud.intesis.com/').toString(), 'GET')
       .respond({ body: SHELL_PAGE });
+
+    // forceLogin: cookies cleared, fresh login round
+    h.expectCall(new URL('login', 'https://accloud.intesis.com/').toString(), 'GET')
+      .respond({ body: LOGIN_PAGE });
+    h.expectCall(new URL('login', 'https://accloud.intesis.com/').toString(), 'POST')
+      .respond({ status: 302 });
+
     // Retry returns a full vista page.
     h.expectCall(new URL('panel/vista?id=DEV1', 'https://accloud.intesis.com/').toString(), 'GET')
       .respond({
@@ -333,13 +341,22 @@ describe('IntesisCloudClient', () => {
 
   test('getDeviceState returns null after shell page retries are exhausted', async () => {
     const h = makeFetchHarness();
+    // First login
     h.expectCall(new URL('login', 'https://accloud.intesis.com/').toString(), 'GET')
       .respond({ body: LOGIN_PAGE });
     h.expectCall(new URL('login', 'https://accloud.intesis.com/').toString(), 'POST')
       .respond({ status: 302 });
 
-    // Initial + 2 retries all return the shell page.
-    for (let i = 0; i < 3; i++) {
+    // Initial vista shell page, then 2 forced re-login attempts.
+    h.expectCall(new URL('panel/vista?id=DEV1', 'https://accloud.intesis.com/').toString(), 'GET')
+      .respond({ body: SHELL_PAGE });
+    for (let i = 0; i < 2; i++) {
+      // forceLogin round
+      h.expectCall(new URL('login', 'https://accloud.intesis.com/').toString(), 'GET')
+        .respond({ body: LOGIN_PAGE });
+      h.expectCall(new URL('login', 'https://accloud.intesis.com/').toString(), 'POST')
+        .respond({ status: 302 });
+      // retry vista still shell
       h.expectCall(new URL('panel/vista?id=DEV1', 'https://accloud.intesis.com/').toString(), 'GET')
         .respond({ body: SHELL_PAGE });
     }
@@ -518,5 +535,27 @@ describe('IntesisCloudClient', () => {
 
     const client = new IntesisCloudClient(makeFakeLogger(), 'u', 'p', base, h.fetchFn);
     expect(await client.ensureLogin()).toBe(true);
+  });
+
+  test('forceLogin clears the session and re-authenticates from scratch', async () => {
+    const h = makeFetchHarness();
+    // First login
+    h.expectCall(new URL('login', 'https://accloud.intesis.com/').toString(), 'GET')
+      .respond({ body: LOGIN_PAGE, setCookie: 'symfony=first; path=/' });
+    h.expectCall(new URL('login', 'https://accloud.intesis.com/').toString(), 'POST')
+      .respond({ status: 302, setCookie: 'symfony=second; path=/' });
+
+    // forceLogin clears cookies and logs in again
+    h.expectCall(new URL('login', 'https://accloud.intesis.com/').toString(), 'GET')
+      .respond({ body: LOGIN_PAGE });
+    h.expectCall(new URL('login', 'https://accloud.intesis.com/').toString(), 'POST')
+      .respond({ status: 302 });
+
+    const client = makeClient(h.fetchFn);
+    expect(await client.ensureLogin()).toBe(true);
+    // Force re-login returns true and performs a fresh login round.
+    expect(await client.forceLogin()).toBe(true);
+    // Two login rounds happened.
+    expect(h.calls.filter(c => c.method === 'POST')).toHaveLength(2);
   });
 });
