@@ -1,3 +1,10 @@
+## [1.0.3] - 2026-08-14
+
+### Other
+
+- Release: automate changelog generation from conventional commits
+
+
 # Changelog
 
 ## [1.0.1] - 2026-08-14
