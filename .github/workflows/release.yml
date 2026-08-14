@@ -85,7 +85,8 @@ jobs:
       - name: Prepend changelog entry
         run: |
           mkdir -p /tmp/changelog
-          printf '%s\n\n%s' "${{ steps.changelog.outputs.SECTION }}" "$(cat CHANGELOG.md)" > /tmp/changelog/CHANGELOG.md
+          # Insert the generated section right after the "# Changelog" heading.
+          { head -1 CHANGELOG.md; printf '\n'; printf '%s\n' "${{ steps.changelog.outputs.SECTION }}"; tail -n +2 CHANGELOG.md; } > /tmp/changelog/CHANGELOG.md
           cp /tmp/changelog/CHANGELOG.md CHANGELOG.md
 
       - name: Publish to npm (trusted publishing)
