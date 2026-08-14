@@ -14,6 +14,9 @@ jobs:
   release:
     name: Publish to npm & GitHub
     runs-on: ubuntu-latest
+    # Skip the run triggered by our own version-bump commit, otherwise this
+    # workflow would loop forever (the bot's commit also carries [skip ci]).
+    if: github.event.head_commit.author.username != 'github-actions[bot]'
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -30,7 +33,6 @@ jobs:
           registry-url: 'https://registry.npmjs.org'
           package-manager-cache: false
 
-      # Trusted publishing requires npm >= 11.5.1 (OIDC exchange).
       - name: Upgrade npm
         run: npm install -g npm@latest
 
@@ -46,25 +48,42 @@ jobs:
       - name: Build
         run: bun run build
 
-      - name: Read package version
+      - name: Read current version
+        id: current
+        run: echo "VERSION=$(node -p "require('./package.json').version")" >> "$GITHUB_OUTPUT"
+
+      - name: Check if current version is already published
+        id: check
+        run: |
+          if npm view homebridge-intesis-accloud@${{ steps.current.outputs.VERSION }} version >/dev/null 2>&1; then
+            echo "NEEDS_BUMP=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "NEEDS_BUMP=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Auto-bump patch version
+        if: steps.check.outputs.NEEDS_BUMP == 'true'
+        run: |
+          node -e "const fs=require('fs');const p=JSON.parse(fs.readFileSync('package.json'));const m=p.version.match(/^(\d+)\.(\d+)\.(\d+)(.+)?$/);p.version=\`\${m[1]}.\${m[2]}.\${+m[3]+1}\${m[4]||''}\`;fs.writeFileSync('package.json',JSON.stringify(p,null,2)+'\n');"
+          echo "Bumped to $(node -p "require('./package.json').version")"
+
+      - name: Read final version
         id: pkg
         run: echo "VERSION=$(node -p "require('./package.json').version")" >> "$GITHUB_OUTPUT"
 
-      - name: Check if version is already published
-        id: check
-        run: |
-          if npm view homebridge-intesis-accloud@${{ steps.pkg.outputs.VERSION }} version >/dev/null 2>&1; then
-            echo "VERSION_CHANGED=false" >> "$GITHUB_OUTPUT"
-          else
-            echo "VERSION_CHANGED=true" >> "$GITHUB_OUTPUT"
-          fi
-
       - name: Publish to npm (trusted publishing)
-        if: steps.check.outputs.VERSION_CHANGED == 'true'
         run: npm publish --provenance --access public
 
+      - name: Commit version bump back to main
+        if: steps.check.outputs.NEEDS_BUMP == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add package.json
+          git commit -m "chore: release v${{ steps.pkg.outputs.VERSION }} [skip ci]"
+          git push origin main
+
       - name: Tag release
-        if: steps.check.outputs.VERSION_CHANGED == 'true'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
@@ -72,7 +91,6 @@ jobs:
           git push origin v${{ steps.pkg.outputs.VERSION }}
 
       - name: Create GitHub Release
-        if: steps.check.outputs.VERSION_CHANGED == 'true'
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ steps.pkg.outputs.VERSION }}

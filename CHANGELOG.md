@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.0.1] - 2026-08-14
+
+- Converted plugin to ESM to match homebridge 2.3.1 (ESM-only, dynamic import).
+- Updated all dev dependencies to latest (homebridge 2.3.1, TypeScript 7.0.2,
+  @types/node 26, @types/bun 1.3.14).
+- Release workflow now runs on merge to main with automatic patch version bump,
+  npm publish via trusted publishing (OIDC), git tag, and GitHub release.
+
 ## [1.0.0] - 2026-08-14
 
 Initial release.

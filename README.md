@@ -101,21 +101,22 @@ Releases are fully automated via GitHub Actions:
 1. **CI workflow** (`.github/workflows/ci.yml`) runs on every push/PR —
    installs deps, runs the test suite with coverage, and builds.
 2. **Release workflow** (`.github/workflows/release.yml`) runs on every merge
-   to `main`. It builds, runs tests, and if the `version` in `package.json`
-   differs from the latest published npm version, it publishes to **npm**
-   (via trusted publishing), tags the commit `v<version>`, and creates a
-   **GitHub release** with auto-generated notes.
+   to `main`. It builds, runs tests, and then:
+   - If the `version` in `package.json` is **already published**, it
+     auto-bumps the **patch** version (`1.0.1` → `1.0.2`), publishes to
+     **npm** (via trusted publishing), tags `v<version>`, and creates a
+     **GitHub release**.
+   - If you bumped the version yourself (e.g. `npm version minor`), it
+     publishes that exact version without auto-bumping.
 
-To cut a release:
+So to cut a release you just merge to `main` — the patch bump, npm publish,
+git tag, and GitHub release all happen automatically. For a **minor** or
+**major** release, bump the version in `package.json` first, then merge:
 
 ```sh
-# bump the version in package.json
-npm version patch   # or minor / major
+npm version minor   # or major
 git push origin main
 ```
-
-That's it — the merge to `main` triggers the publish automatically. If you
-push without bumping the version, the release workflow no-ops.
 
 ## Homebridge catalog
 
