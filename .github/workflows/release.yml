@@ -21,6 +21,19 @@ jobs:
       - name: Install bun
         uses: oven-sh/setup-bun@v2
 
+      # Pin Node + npm versions required for trusted publishing (npm >= 11.5.1,
+      # Node >= 22.14). setup-node's registry-url enables OIDC token exchange.
+      - name: Install Node & npm
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          registry-url: 'https://registry.npmjs.org'
+          package-manager-cache: false
+
+      # Trusted publishing requires npm >= 11.5.1 (OIDC exchange).
+      - name: Upgrade npm
+        run: npm install -g npm@latest
+
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
