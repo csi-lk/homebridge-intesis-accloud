@@ -26,6 +26,11 @@ const LOGIN_PAGE = `<html><title>Sign in</title><body>
   <input type="hidden" name="signin[_csrf_token]" value="TOKEN123">
   <form>signin</form></body></html>`;
 
+/** Authenticated app shell without device data (transient render state). */
+const SHELL_PAGE = `<html><title>Intesis AC Cloud Control</title>
+  <div id="project-main-menu">menu</div>
+  <div id="vista"></div></html>`;
+
 interface Script {
   url: string;
   method: string;
@@ -296,6 +301,73 @@ describe('IntesisCloudClient', () => {
       .respond({ body: '<div id="project-main-menu">ok</div>' });
     h.expectCall(new URL('login', 'https://accloud.intesis.com/').toString(), 'GET')
       .respond({ body: '<div id="project-main-menu">ok</div>' });
+
+    const client = makeClient(h.fetchFn);
+    expect(await client.getDeviceState('DEV1')).toBeNull();
+  });
+
+  test('getDeviceState retries when cloud returns the shell page, then succeeds', async () => {
+    const h = makeFetchHarness();
+    h.expectCall(new URL('login', 'https://accloud.intesis.com/').toString(), 'GET')
+      .respond({ body: LOGIN_PAGE });
+    h.expectCall(new URL('login', 'https://accloud.intesis.com/').toString(), 'POST')
+      .respond({ status: 302 });
+
+    // First vista returns the shell page (no device data).
+    h.expectCall(new URL('panel/vista?id=DEV1', 'https://accloud.intesis.com/').toString(), 'GET')
+      .respond({ body: SHELL_PAGE });
+    // Retry returns a full vista page.
+    h.expectCall(new URL('panel/vista?id=DEV1', 'https://accloud.intesis.com/').toString(), 'GET')
+      .respond({
+        body: `&userId=121679
+               var selectedOnOff = 1;
+               var selectedUsermode = 0;
+               var selectedfanspeed = 0;
+               setTempCelsiusConsignaHeader(206448961640, '21.0');`,
+      });
+
+    const client = makeClient(h.fetchFn);
+    const state = await client.getDeviceState('DEV1');
+    expect(state!.user_id).toBe('121679');
+  });
+
+  test('getDeviceState returns null after shell page retries are exhausted', async () => {
+    const h = makeFetchHarness();
+    h.expectCall(new URL('login', 'https://accloud.intesis.com/').toString(), 'GET')
+      .respond({ body: LOGIN_PAGE });
+    h.expectCall(new URL('login', 'https://accloud.intesis.com/').toString(), 'POST')
+      .respond({ status: 302 });
+
+    // Initial + 2 retries all return the shell page.
+    for (let i = 0; i < 3; i++) {
+      h.expectCall(new URL('panel/vista?id=DEV1', 'https://accloud.intesis.com/').toString(), 'GET')
+        .respond({ body: SHELL_PAGE });
+    }
+
+    const client = makeClient(h.fetchFn);
+    expect(await client.getDeviceState('DEV1')).toBeNull();
+  });
+
+  test('getDeviceState warns on non-200 status', async () => {
+    const h = makeFetchHarness();
+    h.expectCall(new URL('login', 'https://accloud.intesis.com/').toString(), 'GET')
+      .respond({ body: LOGIN_PAGE });
+    h.expectCall(new URL('login', 'https://accloud.intesis.com/').toString(), 'POST')
+      .respond({ status: 302 });
+
+    h.expectCall(new URL('panel/vista?id=DEV1', 'https://accloud.intesis.com/').toString(), 'GET')
+      .respond({ status: 500, body: 'Server Error' });
+
+    const client = makeClient(h.fetchFn);
+    expect(await client.getDeviceState('DEV1')).toBeNull();
+  });
+
+  test('getDeviceState warns when no response after login retries', async () => {
+    const h = makeFetchHarness();
+    h.expectCall(new URL('login', 'https://accloud.intesis.com/').toString(), 'GET')
+      .respond({ body: LOGIN_PAGE });
+    h.expectCall(new URL('login', 'https://accloud.intesis.com/').toString(), 'POST')
+      .respond({ status: 200, body: 'Invalid credentials' });
 
     const client = makeClient(h.fetchFn);
     expect(await client.getDeviceState('DEV1')).toBeNull();

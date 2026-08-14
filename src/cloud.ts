@@ -232,7 +232,30 @@ export class IntesisCloudClient {
       this.log.warn(`getDeviceState(${deviceId}): unexpected HTTP status ${res.status}.`);
       return null;
     }
+    // The cloud occasionally serves the authenticated shell page without the
+    // device panel data (transient render state). Retry a couple of times
+    // before giving up so a single slow render doesn't drop a poll.
+    if (this.isShellPage(res.body)) {
+      for (let attempt = 0; attempt < 2; attempt++) {
+        await this.sleep(1000);
+        const retry = await this.fetchWithLogin(`panel/vista?id=${deviceId}`);
+        if (retry && !this.isLoginPage(retry) && retry.status === 200 && !this.isShellPage(retry.body)) {
+          return this.parseVista(retry.body);
+        }
+      }
+      this.log.warn(`getDeviceState(${deviceId}): cloud returned the shell page without device data; skipping this poll.`);
+      return null;
+    }
     return this.parseVista(res.body);
+  }
+
+  /** True when the body is the authenticated app shell but lacks device data. */
+  private isShellPage(body: string): boolean {
+    return body.includes('project-main-menu') && !/(?:&|&amp;)userId=(\d+)/.test(body);
+  }
+
+  private sleep(ms: number): Promise<void> {
+    return new Promise(resolve => setTimeout(resolve, ms));
   }
 
   private parseVista(body: string): DeviceServices | null {
