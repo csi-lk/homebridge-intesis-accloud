@@ -2,8 +2,8 @@ name: Release
 
 on:
   push:
-    tags:
-      - 'v*'
+    branches:
+      - main
 
 permissions:
   contents: write
@@ -33,18 +33,35 @@ jobs:
       - name: Build
         run: bun run build
 
-      - name: Extract version from tag
-        id: version
-        run: echo "VERSION=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+      - name: Read package version
+        id: pkg
+        run: echo "VERSION=$(node -p "require('./package.json').version")" >> "$GITHUB_OUTPUT"
 
-      - name: Set npm version
-        run: npm version ${{ steps.version.outputs.VERSION }} --no-git-tag-version --allow-same-version
+      - name: Check if version is already published
+        id: check
+        run: |
+          if npm view homebridge-intesis-accloud@${{ steps.pkg.outputs.VERSION }} version >/dev/null 2>&1; then
+            echo "VERSION_CHANGED=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "VERSION_CHANGED=true" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Publish to npm (trusted publishing)
-        run: npm publish --provenance
+        if: steps.check.outputs.VERSION_CHANGED == 'true'
+        run: npm publish --provenance --access public
+
+      - name: Tag release
+        if: steps.check.outputs.VERSION_CHANGED == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag v${{ steps.pkg.outputs.VERSION }}
+          git push origin v${{ steps.pkg.outputs.VERSION }}
 
       - name: Create GitHub Release
+        if: steps.check.outputs.VERSION_CHANGED == 'true'
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: v${{ steps.pkg.outputs.VERSION }}
           generate_release_notes: true
-          name: v${{ steps.version.outputs.VERSION }}
+          name: v${{ steps.pkg.outputs.VERSION }}

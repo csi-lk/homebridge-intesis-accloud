@@ -96,20 +96,26 @@ bun run lint       # type-check without emitting
 
 ## Publishing
 
-Releases are automated via GitHub Actions:
+Releases are fully automated via GitHub Actions:
 
 1. **CI workflow** (`.github/workflows/ci.yml`) runs on every push/PR —
    installs deps, runs the test suite with coverage, and builds.
-2. **Release workflow** (`.github/workflows/release.yml`) triggers on a
-   `v*` tag push — builds, runs tests, publishes to **npm**, and creates a
+2. **Release workflow** (`.github/workflows/release.yml`) runs on every merge
+   to `main`. It builds, runs tests, and if the `version` in `package.json`
+   differs from the latest published npm version, it publishes to **npm**
+   (via trusted publishing), tags the commit `v<version>`, and creates a
    **GitHub release** with auto-generated notes.
 
 To cut a release:
 
 ```sh
-git tag v1.0.0
-git push origin v1.0.0
+# bump the version in package.json
+npm version patch   # or minor / major
+git push origin main
 ```
+
+That's it — the merge to `main` triggers the publish automatically. If you
+push without bumping the version, the release workflow no-ops.
 
 ## Homebridge catalog
 
