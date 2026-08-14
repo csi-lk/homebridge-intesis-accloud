@@ -1,6 +1,6 @@
 {
   "name": "homebridge-intesis-accloud",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "description": "Homebridge plugin for IntesisHome AC controllers. Reliable cloud control with command retry and reconciliation.",
   "main": "dist/index.js",
   "displayName": "Homebridge Intesis AC Cloud",

@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.7] - 2026-08-14
+
+### Fixes
+
+- Improve parse diagnostics and robust userId matching
+
+
 ## [1.0.6] - 2026-08-14
 
 ### Chores
