@@ -7,6 +7,7 @@ on:
 
 permissions:
   contents: write
+  pull-requests: write
   # Required for npm trusted publishing (OIDC) — no NPM_TOKEN secret needed.
   id-token: write
 
@@ -14,8 +15,8 @@ jobs:
   release:
     name: Publish to npm & GitHub
     runs-on: ubuntu-latest
-    # Skip the run triggered by our own version-bump commit, otherwise this
-    # workflow would loop forever (the bot's commit also carries [skip ci]).
+    # Skip the run triggered by a merge of our own release PR (its commit
+    # message carries [skip ci] and this guard is belt-and-braces).
     if: github.event.head_commit.author.username != 'github-actions[bot]'
     steps:
       - name: Checkout
@@ -73,7 +74,20 @@ jobs:
         id: pkg
         run: echo "VERSION=$(node -p "require('./package.json').version")" >> "$GITHUB_OUTPUT"
 
+      # A previous run may already have published this exact bumped version
+      # (e.g. two merges raced). npm forbids re-publishing a version, so bail
+      # early in that case.
+      - name: Check bumped version is not already published
+        id: check-bumped
+        run: |
+          if npm view homebridge-intesis-accloud@${{ steps.pkg.outputs.VERSION }} version >/dev/null 2>&1; then
+            echo "ALREADY_PUBLISHED=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "ALREADY_PUBLISHED=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Generate changelog section
+        if: steps.check-bumped.outputs.ALREADY_PUBLISHED == 'false'
         id: changelog
         run: |
           {
@@ -83,6 +97,7 @@ jobs:
           } >> "$GITHUB_OUTPUT"
 
       - name: Prepend changelog entry
+        if: steps.check-bumped.outputs.ALREADY_PUBLISHED == 'false'
         run: |
           mkdir -p /tmp/changelog
           # Ensure a "# Changelog" heading, then insert the new section after it.
@@ -90,18 +105,23 @@ jobs:
           cp /tmp/changelog/CHANGELOG.md CHANGELOG.md
 
       - name: Publish to npm (trusted publishing)
+        if: steps.check-bumped.outputs.ALREADY_PUBLISHED == 'false'
         run: npm publish --provenance --access public
 
-      - name: Commit version bump and changelog back to main
-        if: steps.check.outputs.NEEDS_BUMP == 'true'
+      # Commit the version bump + changelog on a release branch so the tag can
+      # point at the exact commit that matches what was published to npm.
+      - name: Commit bump on release branch
+        if: steps.check.outputs.NEEDS_BUMP == 'true' && steps.check-bumped.outputs.ALREADY_PUBLISHED == 'false'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -b release/v${{ steps.pkg.outputs.VERSION }}
           git add package.json CHANGELOG.md
-          git commit -m "chore: release v${{ steps.pkg.outputs.VERSION }} [skip ci]"
-          git push origin main
+          git commit -m "chore: release v${{ steps.pkg.outputs.VERSION }}"
+          git push origin release/v${{ steps.pkg.outputs.VERSION }}
 
       - name: Tag release
+        if: steps.check-bumped.outputs.ALREADY_PUBLISHED == 'false'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
@@ -109,8 +129,23 @@ jobs:
           git push origin v${{ steps.pkg.outputs.VERSION }}
 
       - name: Create GitHub Release
+        if: steps.check-bumped.outputs.ALREADY_PUBLISHED == 'false'
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ steps.pkg.outputs.VERSION }}
           generate_release_notes: true
           name: v${{ steps.pkg.outputs.VERSION }}
+
+      # main is branch-protected (requires PRs), so the version bump + changelog
+      # are landed via a PR instead of a direct push. The PR title carries
+      # [skip ci] so merging it does not re-trigger this workflow.
+      - name: Open release PR for version bump
+        if: steps.check.outputs.NEEDS_BUMP == 'true' && steps.check-bumped.outputs.ALREADY_PUBLISHED == 'false'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh pr create \
+            --base main \
+            --head release/v${{ steps.pkg.outputs.VERSION }} \
+            --title "chore: release v${{ steps.pkg.outputs.VERSION }} [skip ci]" \
+            --body "Automated release: bump package.json to v${{ steps.pkg.outputs.VERSION }} and update CHANGELOG.md. Merging keeps main in sync with what was published to npm."
