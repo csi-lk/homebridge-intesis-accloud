@@ -20,6 +20,7 @@
   },
   "keywords": [
     "homebridge-plugin",
+    "supports-hap",
     "homebridge-intesis-accloud",
     "homebridge",
     "intesis",
