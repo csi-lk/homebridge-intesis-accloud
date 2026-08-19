@@ -299,6 +299,11 @@ export class IntesisDevice {
           this.syncAgain = false;
           await this.syncOnce();
         } while (this.syncAgain);
+      } catch (e) {
+        // Never let a sync failure escape as an unhandled rejection — the
+        // command stays pending (needsSync) and will be retried on the next
+        // poll.
+        this.log.error(`${this.name}: sync error: %s`, (e as Error).message);
       } finally {
         this.syncInFlight = false;
         this.syncInFlightPromise = null;
