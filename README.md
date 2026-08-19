@@ -149,18 +149,15 @@ git push origin main
 
 ## Homebridge catalog
 
-To make the plugin discoverable in Homebridge's plugin search, the repository
-must meet the [homebridge plugin guidelines](https://github.com/homebridge/homebridge-plugins#readme):
+The plugin is published to npm with the `homebridge-plugin` keyword, so it's
+searchable directly from the **Homebridge UI → Plugins → search for
+"Intesis AC Cloud"**.
 
-- [x] `homebridge` prefix in the package name
-- [x] Valid `engines.homebridge` field
-- [x] `config.schema.json` (UI form)
-- [x] Public npm package published to the npm registry
-- [x] Verified plugin badge / repository listing (optional, requires approval)
-
-The Homebridge plugin search indexes npm packages that match the
-`homebridge-*` pattern. Once the package is published to npm, search
-"Intesis AC Cloud" from the Homebridge UI plugin page to install it.
+To be listed as a **Verified By Homebridge** plugin (green shield, top of
+search results, optional icon), a request is submitted at the
+[homebridge/plugins](https://github.com/homebridge/plugins) repo. The
+verification checklist the team reviews is documented on the
+[Verified Plugins wiki](https://github.com/homebridge/plugins/wiki/Verified-Plugins).
 
 ## License
 
