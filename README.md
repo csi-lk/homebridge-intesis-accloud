@@ -1,5 +1,11 @@
 # Homebridge Intesis AC Cloud
 
+<p align="center">
+  <img src="https://raw.githubusercontent.com/csi-lk/homebridge-intesis-accloud/main/assets/ac-cloud-logo-512.png"
+       alt="Homebridge Intesis AC Cloud logo"
+       width="160" height="160" />
+</p>
+
 [![Build & Test](https://github.com/csi-lk/homebridge-intesis-accloud/actions/workflows/ci.yml/badge.svg)](https://github.com/csi-lk/homebridge-intesis-accloud/actions/workflows/ci.yml)
 
 Homebridge plugin for controlling **IntesisHome** AC controllers through the
