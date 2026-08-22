@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.13] - 2026-08-22
+
+### Fixes
+
+- Valid JSON Schema - name property, required array (#7)
+
+
 ## [1.0.12] - 2026-08-19
 
 ### Docs
