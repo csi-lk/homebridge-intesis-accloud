@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.12] - 2026-08-19
+
+### Docs
+
+- Update homebridge catalog section (#4)
+
+
 ## [1.0.10] - 2026-08-14
 
 ### Features
