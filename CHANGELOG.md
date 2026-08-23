@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.14] - 2026-08-23
+
+### Docs
+
+- Add verified badge, reorder readme (features first) (#9)
+
+
 ## [1.0.13] - 2026-08-22
 
 ### Fixes
