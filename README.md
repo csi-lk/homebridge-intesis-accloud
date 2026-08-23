@@ -7,36 +7,11 @@
 </p>
 
 [![Build & Test](https://github.com/csi-lk/homebridge-intesis-accloud/actions/workflows/ci.yml/badge.svg)](https://github.com/csi-lk/homebridge-intesis-accloud/actions/workflows/ci.yml)
+[![verified-by-homebridge](https://img.shields.io/badge/homebridge-verified-blueviolet?color=%23491F59&style=flat)](https://github.com/homebridge/homebridge/wiki/Verified-Plugins)
 
 Homebridge plugin for controlling **IntesisHome** AC controllers through the
 Intesis cloud (accloud.intesis.com). Built in **TypeScript**, run with **Bun**,
 and covered by **unit tests with 100% line coverage**.
-
-> **Based on** [jhschuster/homebridge-intesisweb](https://github.com/jhschuster/homebridge-intesisweb)
-> — a huge thanks to Jay Schuster and the original contributors for reverse
-> engineering the Intesis web interface and writing the original plugin. This
-> project is a from-scratch TypeScript rewrite that keeps the same protocol but
-> adds reliable command delivery.
-
-## Why a rewrite?
-
-The original plugin had a critical reliability bug: when the Intesis cloud
-session expires, `device/setVal` responds with **HTTP 200 plus a login page**
-instead of the expected `OK`. The original treated any truthy response as
-success, so HomeKit would report the change as applied while the cloud never
-received the command — and it never retried.
-
-This rewrite:
-
-- **Validates every `setVal` response** and detects the login-page / expired
-  session signature, forcing a re-login and retry.
-- **Tracks desired state** — when you change something in Apple Home, the
-  plugin records it and keeps sending it on every poll until the cloud
-  confirms the value actually changed. It never silently gives up.
-- **Coalesces concurrent syncs** and rate-limits retries so the cloud is never
-  hammered.
-- **Zero runtime dependencies** — uses Node's built-in `fetch` and a small
-  cookie jar.
 
 ## Features
 
@@ -155,15 +130,37 @@ git push origin main
 
 ## Homebridge catalog
 
-The plugin is published to npm with the `homebridge-plugin` keyword, so it's
-searchable directly from the **Homebridge UI → Plugins → search for
-"Intesis AC Cloud"**.
+The plugin is published to npm with the `homebridge-plugin` keyword and is
+**Verified By Homebridge** (green shield, top of search results). Install it
+from the **Homebridge UI → Plugins → search for "Intesis AC Cloud"**.
 
-To be listed as a **Verified By Homebridge** plugin (green shield, top of
-search results, optional icon), a request is submitted at the
-[homebridge/plugins](https://github.com/homebridge/plugins) repo. The
-verification checklist the team reviews is documented on the
-[Verified Plugins wiki](https://github.com/homebridge/plugins/wiki/Verified-Plugins).
+If you find this plugin useful, consider [supporting the project](https://github.com/sponsors/csi-lk) — donations help keep it maintained and improving.
+
+## Why a rewrite?
+
+> **Based on** [jhschuster/homebridge-intesisweb](https://github.com/jhschuster/homebridge-intesisweb)
+> — a huge thanks to Jay Schuster and the original contributors for reverse
+> engineering the Intesis web interface and writing the original plugin. This
+> project is a from-scratch TypeScript rewrite that keeps the same protocol but
+> adds reliable command delivery.
+
+The original plugin had a critical reliability bug: when the Intesis cloud
+session expires, `device/setVal` responds with **HTTP 200 plus a login page**
+instead of the expected `OK`. The original treated any truthy response as
+success, so HomeKit would report the change as applied while the cloud never
+received the command — and it never retried.
+
+This rewrite:
+
+- **Validates every `setVal` response** and detects the login-page / expired
+  session signature, forcing a re-login and retry.
+- **Tracks desired state** — when you change something in Apple Home, the
+  plugin records it and keeps sending it on every poll until the cloud
+  confirms the value actually changed. It never silently gives up.
+- **Coalesces concurrent syncs** and rate-limits retries so the cloud is never
+  hammered.
+- **Zero runtime dependencies** — uses Node's built-in `fetch` and a small
+  cookie jar.
 
 ## License
 
