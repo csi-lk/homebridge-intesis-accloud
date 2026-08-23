@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.15] - 2026-08-23
+
+### Other
+
+- Ci: auto-merge the generated release PRs (#11)
+
+
 ## [1.0.14] - 2026-08-23
 
 ### Docs
