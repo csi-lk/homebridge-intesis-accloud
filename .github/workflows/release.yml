@@ -146,9 +146,10 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh pr create \
+          PR_URL="$(gh pr create \
             --base main \
             --head release/v${{ steps.pkg.outputs.VERSION }} \
             --title "chore: release v${{ steps.pkg.outputs.VERSION }} [skip ci]" \
-            --body "Automated release: bump package.json to v${{ steps.pkg.outputs.VERSION }} and update CHANGELOG.md. Merging keeps main in sync with what was published to npm." \
-            --automerge --squash
+            --body "Automated release: bump package.json to v${{ steps.pkg.outputs.VERSION }} and update CHANGELOG.md. Merging keeps main in sync with what was published to npm.")"
+          echo "$PR_URL"
+          gh pr merge "$PR_URL" --auto --squash
